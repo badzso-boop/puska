@@ -16,582 +16,450 @@
     }
 </style>
 <body>
-    <h1>Insertion sort</h1>
     <p>
-        private void InsertionSort()
-        {
-            for (int i = 1; i < items.Length; ++i)
-            {
-                int j = i - 1;
-                IComparable temp = items[i];
-                while (j >= 0 && temp.CompareTo(items[j]) < 0)
-                {
-                    items[j + 1] = items[j];
-                    --j;
-                }
-                items[j + 1] = temp;
-            }
-        }
-    </p>
-        
+        Mentési pont
 
-    <h1>Bubble sort</h1>    
-    <p>
-        private void BubbleSort()
-        {
-            int i = items.Length - 1;
-            while (i > 0)
-            {
-                int lastSwap = 0;
-                for (int j = 0; j < i; ++j)
-                {
-                    if (items[j + 1].CompareTo(items[j]) < 0)
-                    {
-                        Swap(j, j + 1);
-                        lastSwap = j;
-                    }
-                }
-                i = lastSwap;
-            }           
-        }
-    </p>
+SAVEPONT nev; -> mented az eddigi adatokat
+INSERT INTO ...
+ROLLBACK TO nev; -> visszagörget a megnevezett pontra
+ROLLBACK; -> visszagörgeti az aktuális parancsot
+COMMIT; -> véglegesít
 
-    <h1>Selection sort</h1>
-    <p>
-        private void SelectionSort()
-        {
-            for (int i = 0; i < items.Length - 1; ++i)
-            {
-                int minIndex = i;
-                for (int j = minIndex + 1; j < items.Length; ++j)
-                {
-                    if (items[i].CompareTo(items[j]) > 0)
-                    {
-                        minIndex = j;
-                    }
-                }
-                Swap(i, minIndex);
-            }
-        }
-    </p>
+Felhasználói input
+ACCEPT x PROMPT 'Kérem a számot:'
+DECLARE
+    szam NUMBER;
+BEGIN
+    szam := &x;
+    dbms_output.put_line(szam || ' négyzete: ' ||szam*szam);
+END;
+/
 
 
-    <h1>Binaris kereses</h1>
-    <p>
-        public int BinarySearchIterative(IComparable soughtValue, bool isAscending = true)
-        {
-            // Az elemek rendezettek-e
-            if (!IsOrdered(isAscending)) throw new NotOrderedItemsException(items);
+KURZOROK
+Implicit -> amikor egyertelmu hogy mi szamit egy sornak (most pl a for végett tudja)
+DECLARE
+    egysor employees%ROWTYPE;
+BEGIN
+FOR egysor IN (SELECT * FROM employees)
+LOOP
+    dbms_output.put('Név: ' || egysor.last_name);
+    dbms_output.put_line(',  Fizetés: ' || egysor.salary);
+END LOOP;
+END;
+/
 
-            int leftIndex = 0;
-            int rightIndex = items.Length - 1;
+Explicit kurzor -> deklaráljuk a „kurzor” nevű kurzort, mint egy select utasítás által előállított eredménytáblát (eredményhalmazt). Ezt követően a kurzorral végig tudunk lépni az eredményhalmazon.
+DECLARE
+    CURSOR kurzor IS select * from employees;
+    rekord employees%ROWTYPE;
+BEGIN
+    FOR rekord IN kurzor
+    LOOP
+        IF rekord.salary BETWEEN &also AND &felso
+        THEN
+            dbms_output.put_line(rekord.last_name||',  ' 
+            || rekord.salary);         
+        END IF;
+    END LOOP;
+END;
+/
 
-            while (leftIndex <= rightIndex)
-            {
-                int centerIndex = leftIndex + (rightIndex - leftIndex) / 2;
+- %FOUND – Sikeres volt az előző FETCH művelet?
+- %NOTFOUND – Sikertelen volt az előző FETCH művelet?
+- %ROWCOUNT – Feldolgozott sorok darabszáma
+- %ISOPEN – Volt OPEN művelet
 
-                int comparisonResult = soughtValue.CompareTo(items[centerIndex]);
 
-                if (comparisonResult == 0)
-                    return centerIndex; // A keresett érték megtalálva, visszatérünk az indexszel
-                else if (comparisonResult < 0)
-                    rightIndex = centerIndex - 1; // A keresett érték a bal oldalon van
-                else
-                    leftIndex = centerIndex + 1; // A keresett érték a jobb oldalon van
-            }
+Kivételkezelés
+    - NO_DATA_FOUND
+        - SELECT INTO nem adott vissza sort 
+        - Vigyázat! Csoportfüggvények nem dobnak ilyet!
+    - TOO_MANY_ROWS 
+        - SELECT INTO egynél több sort adott vissza
+    - INVALID_NUMBER
+        - számmá konvertálás hibája
+    - ZERO_DIVIDE
+        - nullával osztás
+    - OTHERS
+        - "Minden más"
 
-            return -1; // Ha nem találjuk meg a keresett értéket, visszatérünk -1-gyel
-        }
-    </p>
-    <p>
-        public int Search(int value)
-        {
-            // mivel már a konstruktorban leellenőriztük a rendezettséget, így itt már nem kell
-            int[] x = Tomb;
-            int bal = 0;
-            int jobb = x.Length - 1;
-            int center = (bal + jobb) / 2;
-            while (bal <= jobb && x[center] != value)
-            {
-                if (x[center].CompareTo(value) > 0) // ha x[center] > value
-                {
-                    jobb = center - 1;
-                }
-                else
-                {
-                    bal = center + 1;
-                }
-                center = (bal + jobb) / 2;
-            }
-            if (bal <= jobb)
-            {
-                return center;
-            }
-            return -1; //nincs ilyen --> -1
-        }
-    </p>
+    - Saját kivétel
+        ACCEPT szam PROMPT 'Szám:'
+        DECLARE 
+            nulla EXCEPTION;
+        BEGIN
+            IF &szam=0 THEN
+                RAISE nulla;
+            END IF;
+            EXCEPTION WHEN nulla THEN 
+                    dbms_output.put_line('Ez nulla!');
+        END;
+        /
 
-    <h1>Részhalmaz</h1>
-    <p>
-        public bool Subset(SetOfInts other)
-        {
-            //Részhalmaz vizsgálat --> az órai dián "A része-e a B-nek" látható, ahol "A" a kisebb
-            // A : other
-            // B : this
-            int[] A = other.Tomb;
-            int[] B = this.Tomb;
-            int i = 0; // i = 0 .. other.Tomb.Length - 1 | A futóváltozója
-            int j = 0; // j = 0 .. this.Tomb.Length - 1 | B futóváltozója
-            int m = A.Length - 1; // i-hez tartozó felső határ
-            int n = B.Length - 1; //j-hez tartozó felső határ
-            while (i <= m && j <= n && A[i].CompareTo(B[j]) >= 0) //a[i] >= b[j]
-            {
-                if (A[i] == B[j])
-                {
-                    i++;
-                }
-                j++;
-            }
-            return i > m;
-        }
-    </p>
-    <p>
-        public bool Contains(object participant)
-        {
-            if(participant is Participant)
-            {
-                IComparable[] x = Tomb;
-                int bal = 0;
-                int jobb = x.Length - 1;
-                int center = (bal + jobb) / 2;
-                while (bal <= jobb && x[center].CompareTo(participant) != 0)
-                {
-                    if (x[center].CompareTo(participant) > 0) // ha x[center] > value
-                    {
-                        jobb = center - 1;
-                    }
-                    else
-                    {
-                        bal = center + 1;
-                    }
-                    center = (bal + jobb) / 2;
-                }
-                if (bal <= jobb)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-    </p>
-    <p>
-        public bool IsSubset(ParticipantList other)
-        {
-            //Részhalmaz vizsgálat --> az órai dián "A része-e a B-nek" látható, ahol "A" a kisebb
-            // A : other
-            // B : this
-            IComparable[] A = other.Tomb;
-            IComparable[] B = this.Tomb;
-            int i = 0; // i = 0 .. other.Tomb.Length - 1 | A futóváltozója
-            int j = 0; // j = 0 .. this.Tomb.Length - 1 | B futóváltozója
-            int m = A.Length - 1; // i-hez tartozó felső határ
-            int n = B.Length - 1; //j-hez tartozó felső határ
-            while (i <= m && j <= n && A[i].CompareTo(B[j]) >= 0) //a[i] >= b[j]
-            {
-                if (A[i].CompareTo(B[j]) == 0)
-                {
-                    i++;
-                }
-                j++;
-            }
-            return i > m;
-        }
 
-        static bool IsSubset(ParticipantList list1, ParticipantList list2)
-        {
-            //Részhalmaz vizsgálat --> az órai dián "A része-e a B-nek" látható, ahol "A" a kisebb
-            // A : other
-            // B : this
-            IComparable[] A = list1.Tomb;
-            IComparable[] B = list2.Tomb;
-            int i = 0; // i = 0 .. other.Tomb.Length - 1 | A futóváltozója
-            int j = 0; // j = 0 .. this.Tomb.Length - 1 | B futóváltozója
-            int m = A.Length - 1; // i-hez tartozó felső határ
-            int n = B.Length - 1; //j-hez tartozó felső határ
-            while (i <= m && j <= n && A[i].CompareTo(B[j]) >= 0) //a[i] >= b[j]
-            {
-                if (A[i].CompareTo(B[j]) == 0)
-                {
-                    i++;
-                }
-                j++;
-            }
-            return i > m;
-        }
+PROCEDURE
+
+CREATE OR REPLACE PROCEDURE nev(vezName varchar2 ,parameter [varchar2 / number / char / date / boolean / float])
+IS
+    %% valtozok definialasa %%
+    osszeg number := 0;
+    cursor kurzor is SELECT * FROM employees;
+    rekord kurzor%ROWTYPE;
+    cursor kurzor2 is select * from employees2 where last_name = vezNev for update of salary;
+    rekord2 kurzor2%ROWTYPE;
+BEGIN
+    for rekord in kurzor
+    loop
+        osszeg := osszeg + rekord.salary;
+    end loop;
+    if osszeg is not null then
+        DBMS_OUTPUT.PUT_LINE('Összes fizetés: ' || osszeg);
+    end if;
+END;
+/
+
+
+CREATE OR REPLACE PROCEDURE kredit_osszeg(neptun_kod CHAR)
+IS
+    osszes_kredit NUMBER := 0;
+BEGIN
+    SELECT SUM(kredit)
+    INTO osszes_kredit
+    FROM leckekonyv
+    WHERE neptun = neptun_kod AND erdemjegy > 1;
+
+    IF osszes_kredit > 20 THEN
+        DBMS_OUTPUT.PUT_LINE('A hallgató sok kreditet teljesített: ' || neptun_kod);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('A hallgató kevés kreditet teljesített: ' || neptun_kod);
+    END IF;
+END;
+/
+
+BEGIN
+    kredit_osszeg('OEM5G1');
+    kredit_osszeg('OER1K2');
+END;
+/
+
+
+TRIGGEREK
+:new -> uj ertek
+:old -> regi ertek
+
+CREATE OR REPLACE TRIGGER nev
+[before / after] [delete or insert or update on / delete on / insert on / update on] tablanev
+[FOR EACH ROW / FOR EACH ROW WHEN(new.salary <> old.salary)] -> megvaltozott a salary ertek
+BEGIN
+    if inserting then
+        dbms_output.put_line("inserting");
+    elsif deleting then
+        dbms_output.put_line("inserting");
+    elsif updating then
+        dbms_output.put_line("inserting");
+    end if;
+END;
+
+DATUM KEZELES TRIGERBEN
+Ha december van irja ki hogy "kellemes ünnepeket!"
+    if extract(month from sysdate) = 12 then
+        dbms_output.put_line("kellemes ünnepeket!");
+    end if;
+
+Ne lehessen csokkenteni a fizetest
+CREATE OR REPLACE TRIGGER SalaryUpdate
+before UPDATE ON employees2 -> update elott fusson le
+FOR EACH ROW
+BEGIN
+ IF :NEW.salary < :OLD.salary THEN
+  :NEW.salary := :OLD.salary; -> uj ertekbe elmentjuk a regi erteket
+  DBMS_OUTPUT.PUT_LINE('Nem lehet csokkenteni a fizetest!');
+ END IF;
+END;
+
+-- Készíts egy triggert, amely nem enged egyetlen alkalmazottnak sem department –et váltani anélkül, hogy az új főnöke annak a departmentnek a managere lenne a továbbiakban!
+CREATE OR REPLACE TRIGGER depchange_with_manchange
+BEFORE UPDATE ON employees2
+FOR EACH ROW
+DECLARE
+ depmanid NUMBER;
+BEGIN
+ SELECT manager_id into depmanid from departments where department_id = :NEW.department_id;
+  IF :NEW.manager_id != depmanid THEN
+    :NEW.manager_id:= depmanid;
+    DBMS_OUTPUT.PUT_LINE('Nem valthat departmentet anelkul, hogy az ahhoz tartozo manager lenne az uj fonoke!');
+  END IF;
+END;
+
+-- Készíts egy triggert, ami ellenőrzi, hogy a countries táblába csak olyan country_name-et lehessen beszúrni (vagy módosítani), ami az angol ABC kis- és nagybetűit tartalmazza!​
+CREATE OR REPLACE TRIGGER check_country_name 
+BEFORE INSERT OR UPDATE ON countries2 
+FOR EACH ROW 
+DECLARE 
+  invalid_characters EXCEPTION;
+BEGIN
+  IF NOT REGEXP_LIKE(:NEW.country_name, '^[A-Za-z ]+$') THEN
+    RAISE invalid_characters;
+  END IF;
+EXCEPTION
+  WHEN invalid_characters THEN
+    raise_application_error(-20001, 'Az ország neve csak angol ABC karaktereket tartalmazhat.');
+END;
+
+
     </p>
 
-    <h1>Halmaz unioja</h1>
+
+
+
+    <h2>NAGYON SOK CUCC</h2>
     <p>
-        public SetOfInts Union(SetOfInts other)
-        {
+        -- EZ mindig kell
+SET serveroutput ON
+SET verify OFF
 
-            // a sorrend (azaz, hogy melyik az A1 és melyik az A2) most lényegtelen
-            int[] Eredeti1 = this.Tomb;
-            int[] Eredeti2 = other.Tomb;
-            // ide gyűjtjük ki a közös elemeket
-            int[] B = new int[Eredeti1.Length + Eredeti2.Length];
-            int db = -1;
+-- Felhasználói input
+    ACCEPT x PROMPT 'Kérem a számot:'
+    DECLARE
+        szam NUMBER;
+    BEGIN
+        szam := &x;
+        dbms_output.put_line(szam || ' négyzete: ' ||szam*szam);
+    END;
+    /
 
-            //belőjük a futóindexeket és azok felső határát
-            int i = 0; // i= 0 .. Tomb.Length - 1
-            int j = 0; // j= 0 .. other.Tomb.Length - 1
 
-            //Az órai dián a pszeudokód azt akarja, hogy rakjunk be egy újabb elemet (+végtelen-t)
-            int[] A1 = new int[Eredeti1.Length + 1];
-            for (int k = 0; k < Eredeti1.Length; k++)
-            {
-                A1[k] = Eredeti1[k];
-            }
-            A1[Eredeti1.Length] = int.MaxValue;
+-- IF feltételek
+    ACCEPT x PROMPT 'Kérem a számot:'
+    DECLARE
+        szam NUMBER;
+    BEGIN
+        szam := &x;
+        IF szam>0 THEN
+            dbms_output.put_line('Pozitív.');
+        ELSIF szam<0 THEN
+            dbms_output.put_line('Negatív.');
+        ELSE
+            dbms_output.put_line('Nulla.');
+        END IF;
+    END;
+    /
 
-            //másikra úgyszintén
-            int[] A2 = new int[Eredeti2.Length + 1];
-            for (int k = 0; k < Eredeti2.Length; k++)
-            {
-                A2[k] = Eredeti2[k];
-            }
-            A2[Eredeti2.Length] = int.MaxValue;
 
-            int m = A1.Length; // i-hez tartozó felső határ
-            int n = A2.Length; // j-hez tartozó felső határ
+-- Oszthatóság
+    ACCEPT x PROMPT 'Kérem a számot:'
+    declare
+        szam integer;
+    begin
+        szam := &x;
+        if mod(szam, 5) = 0 then
+            dbms_output.put_line('Osztható öttel. ');
+        else
+            dbms_output.put_line('Nem osztható öttel. ');
+        end if;
+    end;
+    /
 
-            while (i < m || j < n)
-            {
-                db++;
-                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
-                {
-                    B[db] = A1[i];
-                    i++;
-                }
-                else if (A1[i].CompareTo(A2[j]) > 0) // A1[i] > A2[j]
-                {
-                    B[db] = A2[j];
-                    j++;
-                }
-                else
-                {
-                    B[db] = A1[i];
-                    i++;
-                    j++;
-                }
-            }
 
-            //"levágjuk" a felesleget
-            int[] results = new int[db];
-            for (int k = 0; k < results.Length; k++)
-            {
-                results[k] = B[k];
-            }
-            return new SetOfInts(results);
-        }
-    }
-    </p>
+-- WHILE ciklus
+    DECLARE
+        tol NUMBER;
+        ig  NUMBER;
+    BEGIN
+        tol:=1;
+        ig:=10;
+        LOOP
+            dbms_output.put_line(tol);
+            EXIT WHEN tol=ig;
+            tol:=tol+1;
+        END LOOP;
+    END;
+    /
 
-    <h1>Halmaz metszete</h1>
-    <p>
-        public SetOfInts Intersection(SetOfInts other)
-        {
-            // a sorrend (azaz, hogy melyik az A1 és melyik az A2) most lényegtelen
-            int[] A1 = this.Tomb;
-            int[] A2 = other.Tomb;
-            // ide gyűjtjük ki a közös elemeket
-            int[] B = new int[Math.Min(A1.Length, A2.Length)];
-            int db = -1;
 
-            //belőjük a futóindexeket és azok felső határát
-            int i = 0; // i= 0 .. Tomb.Length - 1
-            int j = 0; // j= 0 .. other.Tomb.Length - 1
-            int m = A1.Length - 1; // i-hez tartozó felső határ
-            int n = A2.Length - 1; //j-hez tartozó felső határ
+-- FOR ciklus
+    ACCEPT mettol PROMPT 'Mettől:'
+    ACCEPT meddig PROMPT 'Meddig:'
+    DECLARE
+        tol NUMBER;
+        ig  NUMBER;
+    BEGIN
+        tol:=&mettol;
+        ig:=&meddig;
+        FOR i in tol..ig
+        LOOP
+            -- MOD(x,y) : x mennyi maradékot ad y-nal osztva
+            IF MOD(i,2)=1 THEN 
+                dbms_output.put(i || ', ');
+            END IF;
+        END LOOP;
+        dbms_output.put_line('');
+    END; 
+    /
 
-            while (i <= m && j <= n)
-            {
-                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
-                {
-                    i++;
-                }
-                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
-                {
-                    j++;
-                }
-                else
-                {
-                    db++;
-                    B[db] = A1[i];
-                    i++;
-                    j++;
-                }
-            }
 
-            //"levágjuk" a felesleget
-            int[] results = new int[db];
-            for (int k = 0; k < results.Length; k++)
-            {
-                results[k] = B[k];
-            }
-            return new SetOfInts(results);
-        }
-    </p>
-    <p>
-        public ParticipantList Intersection(ParticipantList other)
-        {
-            // a sorrend (azaz, hogy melyik az A1 és melyik az A2) most lényegtelen
-            IComparable[] A1 = this.Tomb;
-            IComparable[] A2 = other.Tomb;
-            // ide gyűjtjük ki a közös elemeket
-            IComparable[] B = new IComparable[Math.Min(A1.Length, A2.Length)];
-            int db = -1;
+-- KURZOROK
+    -- %FOUND – Sikeres volt az előző FETCH művelet?
+    -- %NOTFOUND – Sikertelen volt az előző FETCH művelet?
+    -- %ROWCOUNT – Feldolgozott sorok darabszáma
+    -- %ISOPEN – Volt OPEN művelet?
 
-            //belőjük a futóindexeket és azok felső határát
-            int i = 0; // i= 0 .. Tomb.Length - 1
-            int j = 0; // j= 0 .. other.Tomb.Length - 1
-            int m = A1.Length - 1; // i-hez tartozó felső határ
-            int n = A2.Length - 1; //j-hez tartozó felső határ
+    -- Implicit -> amikor egyertelmu hogy mi szamit egy sornak (most pl a for végett tudja)
+    DECLARE
+        egysor employees%ROWTYPE;
+    BEGIN
+    FOR egysor IN (SELECT * FROM employees)
+    LOOP
+        dbms_output.put('Név: ' || egysor.last_name);
+        dbms_output.put_line(',  Fizetés: ' || egysor.salary);
+    END LOOP;
+    END;
+    /
 
-            while (i <= m && j <= n)
-            {
-                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
-                {
-                    i++;
-                }
-                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
-                {
-                    j++;
-                }
-                else
-                {
-                    db++;
-                    B[db] = A1[i];
-                    i++;
-                    j++;
-                }
-            }
+    -- Explicit
+    -- Explicit kurzor: deklaráljuk a „kurzor” nevű kurzort, mint egy select utasítás által előállított eredménytáblát (eredményhalmazt). 
+    -- Ezt követően a kurzorral végig tudunk lépni az eredményhalmazon.
 
-            //"levágjuk" a felesleget
-            IComparable[] results = new IComparable[db];
-            for (int k = 0; k < results.Length; k++)
-            {
-                results[k] = B[k];
-            }
-            return new ParticipantList(results);
-        }
+    ACCEPT also PROMPT 'Kérem az alsó határt:'
+    ACCEPT felso PROMPT 'Kérem az felső határt:'
+    DECLARE
+    CURSOR kurzor IS select * from employees;
+    rekord employees%ROWTYPE;
+    BEGIN
+    FOR rekord IN kurzor
+    LOOP
+        IF rekord.salary BETWEEN &also AND &felso
+        THEN
+            dbms_output.put_line(rekord.last_name||',  ' 
+            || rekord.salary);         
+        END IF;
+    END LOOP;
+    END;
+    /
 
-        static ParticipantList Intersection(ParticipantList list1, ParticipantList list2)
-        {
-            // a sorrend (azaz, hogy melyik az A1 és melyik az A2) most lényegtelen
-            IComparable[] A1 = list1.Tomb;
-            IComparable[] A2 = list2.Tomb;
-            // ide gyűjtjük ki a közös elemeket
-            IComparable[] B = new IComparable[Math.Min(A1.Length, A2.Length)];
-            int db = -1;
+-- UPDATE
+    -- NOWAIT: ne várakozzon a zárolt sorokra
+    Declare
+    cursor kurzor is select*from employees2 for update of salary;
+    rekord kurzor%ROWTYPE; 
+    fizetes number;
+    BEGIN
+        OPEN kurzor;
+        LOOP
+            FETCH kurzor INTO rekord;
+            EXIT WHEN kurzor%NOTFOUND;
+            fizetes := rekord.salary * 1.2;
+            UPDATE employees2 set salary = fizetes WHERE CURRENT OF kurzor; 
+        END LOOP;
+        CLOSE kurzor;
+    END;
+    /
 
-            //belőjük a futóindexeket és azok felső határát
-            int i = 0; // i= 0 .. Tomb.Length - 1
-            int j = 0; // j= 0 .. other.Tomb.Length - 1
-            int m = A1.Length - 1; // i-hez tartozó felső határ
-            int n = A2.Length - 1; //j-hez tartozó felső határ
+-- Kivételkezelés
+    -- NO_DATA_FOUND
+        -- SELECT INTO nem adott vissza sort 
+        -- Vigyázat! Csoportfüggvények nem dobnak ilyet!
+    -- TOO_MANY_ROWS 
+        -- SELECT INTO egynél több sort adott vissza
+    -- INVALID_NUMBER
+        -- számmá konvertálás hibája
+    -- ZERO_DIVIDE
+        -- nullával osztás
+    -- OTHERS
+        -- "Minden más"
 
-            while (i <= m && j <= n)
-            {
-                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
-                {
-                    i++;
-                }
-                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
-                {
-                    j++;
-                }
-                else
-                {
-                    db++;
-                    B[db] = A1[i];
-                    i++;
-                    j++;
-                }
-            }
+    -- Saját kivétel
+    ACCEPT szam PROMPT 'Szám:'
+    DECLARE 
+        nulla EXCEPTION;
+    BEGIN
+        IF &szam=0 THEN
+            RAISE nulla;
+        END IF;
+        EXCEPTION WHEN nulla THEN 
+                dbms_output.put_line('Ez nulla!');
+    END;
+    /
 
-            //"levágjuk" a felesleget
-            IComparable[] results = new IComparable[db];
-            for (int k = 0; k < results.Length; k++)
-            {
-                results[k] = B[k];
-            }
-            return new ParticipantList(results);
-        }
-    </p>
+-- saját PROCEDURE
+    -- Készíts eljárást, amely 2 szám paraméterrel rendelkezik. Az eljárás írja ki a két szám összegét. Ezt követően töröld az eljárást.
+    CREATE OR REPLACE PROCEDURE osszeadas(a NUMBER, b NUMBER) IS
+        osszeg NUMBER;
+    BEGIN
+        osszeg := a + b;
+        DBMS_OUTPUT.PUT_LINE('Sum: ' || osszeg);
+    END;
+    /
 
-    <h1>Halmaz különbsége</h1>
-    <p>
-        public ParticipantList Difference(ParticipantList other)
-        {
-            IComparable[] A1 = this.Tomb; //ebből vonjuk ki
-            IComparable[] A2 = other.Tomb; //ezt vonjuk ki
-            // ide gyűjtjük ki a közös elemeket
-            IComparable[] B = new IComparable[A1.Length];
-            int db = -1;
-            //belőjük a futóindexeket és azok felső határát
-            int i = 0; // i= 0 .. Tomb.Length - 1
-            int j = 0; // j= 0 .. other.Tomb.Length - 1
-            int m = A1.Length - 1; // i-hez tartozó felső határ
-            int n = A2.Length - 1; // j-hez tartozó felső határ
-            while (i <= m && j <= n)
-            {
-                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
-                {
-                    db++;
-                    B[db] = A1[i];
-                    i++;
-                }
-                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
-                {
-                    j++;
-                }
-                else
-                {
-                    i++;
-                    j++;
-                }
-            }
+    BEGIN
+        osszeadas(2, 3);
+    END;
+    /
 
-            while (i <= m)
-            {
-                db++;
-                B[db] = A1[i];
-                i++;
-            }
+    DROP PROCEDURE osszeadas;
 
-            //"levágjuk" a felesleget
-            IComparable[] results = new IComparable[db];
-            for (int k = 0; k < results.Length; k++)
-            {
-                results[k] = B[k];
-            }
-            return new ParticipantList(results);
-        }
+-- FUNCTION
 
-        static ParticipantList Difference(ParticipantList list1, ParticipantList list2)
-        {
-            IComparable[] A1 = list1.Tomb; //ebből vonjuk ki
-            IComparable[] A2 = list2.Tomb; //ezt vonjuk ki
-            // ide gyűjtjük ki a közös elemeket
-            IComparable[] B = new IComparable[A1.Length];
-            int db = -1;
-            //belőjük a futóindexeket és azok felső határát
-            int i = 0; // i= 0 .. Tomb.Length - 1
-            int j = 0; // j= 0 .. other.Tomb.Length - 1
-            int m = A1.Length - 1; // i-hez tartozó felső határ
-            int n = A2.Length - 1; // j-hez tartozó felső határ
-            while (i <= m && j <= n)
-            {
-                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
-                {
-                    db++;
-                    B[db] = A1[i];
-                    i++;
-                }
-                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
-                {
-                    j++;
-                }
-                else
-                {
-                    i++;
-                    j++;
-                }
-            }
+    -- Készíts olyan függvényt, amelynek a paraméterei két szám, a visszatérési értéke pedig a két szám minimuma.
+    create or replace function mini(a number, b number)
+    return number
+    is
+    begin
+        if a < b then
+            return a;
+        else
+            return b;
+        end if;
+    end;
 
-            while (i <= m)
-            {
-                db++;
-                B[db] = A1[i];
-                i++;
-            }
+    begin
+        dbms_output.put_line(mini(6,2));
+    end;
+    /
 
-            //"levágjuk" a felesleget
-            IComparable[] results = new IComparable[db];
-            for (int k = 0; k < results.Length; k++)
-            {
-                results[k] = B[k];
-            }
-            return new ParticipantList(results);
-        }
-    </p>
+-- TRIGGEREK
+    -- :NEW az új, megváltozott érték,
+    -- :OLD a régi, megváltoztatandó érték
+    create table departments2 as select * from departments;
 
-    <h1>Ordered and Unique</h1>
-    <p>
-        bool isItOrderedAndUnique(int[] vizsgaltTomb)
-        {
-            //nem részletezte a feladat, hogy növekvő vagy csökkenő sorrend kell,
-            //ezért legyen szimplán növekvő
-            for (int i = 1; i < vizsgaltTomb.Length; i++)
-            {
-                //ha a következő elem kisebb, akkor nem rendezett
-                //ha a következő elem vele egyenlő, akkor nem minden elem egyedi
-                if (vizsgaltTomb[i - 1] >= vizsgaltTomb[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-    </p>
+    create or replace trigger Jelzo
+    after insert on departments2
+    begin
+        dbms_output.put_line('Új részleg beszúrva!');
+    end;
 
-    <h1>Hibakezeles</h1>
-    <p>
-        using System;
-        using System.Collections.Generic;
-        using System.Linq;
-        using System.Text;
-        using System.Threading.Tasks;
-        using NUnit.Framework;
-        using RunningApp;
+    insert into departments2 (department_id, department_name)
+    values (22, 'asd');
 
-        namespace RunningAppTests
-        {
-            [TestFixture]
-            internal class TimeTests
-            {
-                [TestCase("02:13:46", 2, 13, 46)]
-                [TestCase("13:46", 0, 13, 46)]
-                public void ParseSuccessful(string input, int hour, int minute, int second)
-                {
-                    Time actual = Time.Parse(input);
-                    Assert.That(actual.Hour, Is.EqualTo(hour));
-                    Assert.That(actual.Minute, Is.EqualTo(minute));
-                    Assert.That(actual.Second, Is.EqualTo(second));
-                }
+-- TCL utasítások
+    -- SAVEPOINT ittmentettünk;
+        -- mentési pont létrehozása
 
-                [TestCase("")]
-                [TestCase("2:13:46")]
-                [TestCase("4:13:46")]
-                [TestCase("2:76:46")]
-                [TestCase("2:13:98")]
-                [TestCase("1:46")]
-                [TestCase("0:1:2:34")]
-                public void ParseFailed(string input)
-                {
-                    Assert.Throws<TimeException>(() => Time.Parse(input));
-                }
+    -- ROLLBACK TO ittmentettünk;
+        -- visszagörgetés a megadott mentési pontig
 
-                [TestCase("00:00:00", "01:00", -1)]
-                [TestCase("01:13:46", "01:13:46", 0)]
-                [TestCase("02:34:21", "01:56:17", +1)]
-                public void CompareTo(string input1, string input2, int expected)
-                {
-                    Assert.That(Time.Parse(input1).CompareTo(Time.Parse(input2)), Is.EqualTo(expected));
-                }
-            }
-        }
+    -- ROLLBACK;
+        -- visszagörgeti az aktuális tranzakciót
+
+    -- COMMIT;
+        -- véglegesítés
+
+
+-- FELADAT
+
+-- Készítsünk másolatot a departments tábláról departments2 néven.
+-- Készítsünk mentési pontot sp néven.
+-- Szúrjunk be egy tetszőleges sort a departments2 táblába.
+-- Listázzuk a táblát.
+-- Álljunk vissza az sp mentési pontra.
+-- Listázzuk ismét a táblát.
+Create table departments2 as select * from departments;
+SAVEPOINT sp;
+INSERT INTO departments2 VALUES (300,'Cheesmakers',200,1500);
+SELECT * FROM departments2;
+ROLLBACK TO sp;
+SELECT * FROM departments2;
     </p>
 </body>
 </html>
