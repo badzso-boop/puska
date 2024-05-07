@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Óbuadi egyetem moodle</title>
+</head>
+<body>
+    <h1>Insertion sort</h1>
+    <p>
+        private void InsertionSort()
+        {
+            for (int i = 1; i < items.Length; ++i)
+            {
+                int j = i - 1;
+                IComparable temp = items[i];
+                while (j >= 0 && temp.CompareTo(items[j]) < 0)
+                {
+                    items[j + 1] = items[j];
+                    --j;
+                }
+                items[j + 1] = temp;
+            }
+        }
+    </p>
+
+    <h1>Bubble sort</h1>    
+    <p>
+        private void BubbleSort()
+        {
+            int i = items.Length - 1;
+            while (i > 0)
+            {
+                int lastSwap = 0;
+                for (int j = 0; j < i; ++j)
+                {
+                    if (items[j + 1].CompareTo(items[j]) < 0)
+                    {
+                        Swap(j, j + 1);
+                        lastSwap = j;
+                    }
+                }
+                i = lastSwap;
+            }           
+        }
+    </p>
+
+    <h1>Selection sort</h1>
+    <p>
+        private void SelectionSort()
+        {
+            for (int i = 0; i < items.Length - 1; ++i)
+            {
+                int minIndex = i;
+                for (int j = minIndex + 1; j < items.Length; ++j)
+                {
+                    if (items[i].CompareTo(items[j]) > 0)
+                    {
+                        minIndex = j;
+                    }
+                }
+                Swap(i, minIndex);
+            }
+        }
+    </p>
+
+
+    <h1>Binaris kereses</h1>
+    <p>
+        public int BinarySearchIterative(IComparable soughtValue, bool isAscending = true)
+        {
+            // Az elemek rendezettek-e
+            if (!IsOrdered(isAscending)) throw new NotOrderedItemsException(items);
+
+            int leftIndex = 0;
+            int rightIndex = items.Length - 1;
+
+            while (leftIndex <= rightIndex)
+            {
+                int centerIndex = leftIndex + (rightIndex - leftIndex) / 2;
+
+                int comparisonResult = soughtValue.CompareTo(items[centerIndex]);
+
+                if (comparisonResult == 0)
+                    return centerIndex; // A keresett érték megtalálva, visszatérünk az indexszel
+                else if (comparisonResult < 0)
+                    rightIndex = centerIndex - 1; // A keresett érték a bal oldalon van
+                else
+                    leftIndex = centerIndex + 1; // A keresett érték a jobb oldalon van
+            }
+
+            return -1; // Ha nem találjuk meg a keresett értéket, visszatérünk -1-gyel
+        }
+    </p>
+
+
+    <h1>Halmaz unioja</h1>
+    <p>
+        Bemenet: a1 − T halmaz, m1 − egész (halmaz mérete), a2 − T halmaz, m2 − egész (halmaz mérete)
+Kimenet: b − T halmaz, db − egész
+függvény HalmazUnió(a1, m1, a2, m2)
+b ← Létrehoz(T)[m1 + m2]
+i ← 1
+j ← 1
+db ← 0
+m1 ← m1 + 1
+a1[m1] ← +∞
+m2 ← m2 + 1
+a2[m2] ← +∞
+ciklus amíg (i < m1) ∨ (j < m2)
+db ← db + 1
+ha a1[i] < a2[j] akkor
+b[db] ← a1[i]
+i ← i + 1
+különben
+ha a1[i] > a2[j] akkor
+b[db] ← a2[j]
+j ← j + 1
+különben
+b[db] ← a1[i]
+i ← i + 1
+j ← j + 1
+elágazás vége
+elágazás vége
+ciklus vége
+vissza (b, db)
+függvény vége
+    </p>
+
+    <h1>Halmaz metszete</h1>
+    <p>
+        Bemenet: a1 − T halmaz, m1 − egész (halmaz mérete), a2 − T halmaz, m2 − egész (halmaz mérete)
+Kimenet: b − T halmaz, db − egész
+függvény HalmazMetszet(a1, m1, a2, m2)
+b ← Létrehoz(T)[min(m1, m2)]
+i ← 1
+j ← 1
+db ← 0
+ciklus amíg (i ≤ m1) ∧ (j ≤ m2)
+ha a1[i] < a2[j] akkor
+i ← i + 1
+különben ha a1[i] > a2[j] akkor
+j ← j + 1
+különben
+db ← db + 1
+b[db] ← a1[i]
+i ← i + 1
+j ← j + 1
+elágazás vége
+ciklus vége
+vissza (b, db)
+függvény vége
+    </p>
+
+    <h1>Halmaz különbsége</h1>
+    <p>
+        Bemenet: a1 − T halmaz, m1 − egész (halmaz mérete), a2 − T halmaz, m2 − egész (halmaz mérete)
+Kimenet: b − T halmaz, db − egész
+függvény HalmazKülönbség(a1, m1, a2, m2)
+b ← Létrehoz(T)[m1]
+i ← 1
+j ← 1
+db ← 0
+ciklus amíg (i ≤ m1) ∧ (j ≤ m2)
+ha a1[i] < a2[j] akkor
+db ← db + 1
+b[db] ← a1[i]
+i ← i + 1
+különben ha a1[i] > a2[j] akkor
+j ← j + 1
+különben
+i ← i + 1
+j ← j + 1
+elágazás vége
+ciklus vége
+ciklus amíg i ≤ m1
+db ← db + 1
+b[db] ← a1[i]
+i ← i + 1
+ciklus vége
+vissza (b, db)
+függvény vége
+    </p>
+
+    <h1>Hibakezeles</h1>
+    <p>
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
+        using NUnit.Framework;
+        using RunningApp;
+
+        namespace RunningAppTests
+        {
+            [TestFixture]
+            internal class TimeTests
+            {
+                [TestCase("02:13:46", 2, 13, 46)]
+                [TestCase("13:46", 0, 13, 46)]
+                public void ParseSuccessful(string input, int hour, int minute, int second)
+                {
+                    Time actual = Time.Parse(input);
+                    Assert.That(actual.Hour, Is.EqualTo(hour));
+                    Assert.That(actual.Minute, Is.EqualTo(minute));
+                    Assert.That(actual.Second, Is.EqualTo(second));
+                }
+
+                [TestCase("")]
+                [TestCase("2:13:46")]
+                [TestCase("4:13:46")]
+                [TestCase("2:76:46")]
+                [TestCase("2:13:98")]
+                [TestCase("1:46")]
+                [TestCase("0:1:2:34")]
+                public void ParseFailed(string input)
+                {
+                    Assert.Throws<TimeException>(() => Time.Parse(input));
+                }
+
+                [TestCase("00:00:00", "01:00", -1)]
+                [TestCase("01:13:46", "01:13:46", 0)]
+                [TestCase("02:34:21", "01:56:17", +1)]
+                public void CompareTo(string input1, string input2, int expected)
+                {
+                    Assert.That(Time.Parse(input1).CompareTo(Time.Parse(input2)), Is.EqualTo(expected));
+                }
+            }
+        }
+    </p>
+</body>
+</html>
