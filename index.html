@@ -98,94 +98,447 @@
             return -1; // Ha nem találjuk meg a keresett értéket, visszatérünk -1-gyel
         }
     </p>
+    <p>
+        public int Search(int value)
+        {
+            // mivel már a konstruktorban leellenőriztük a rendezettséget, így itt már nem kell
+            int[] x = Tomb;
+            int bal = 0;
+            int jobb = x.Length - 1;
+            int center = (bal + jobb) / 2;
+            while (bal <= jobb && x[center] != value)
+            {
+                if (x[center].CompareTo(value) > 0) // ha x[center] > value
+                {
+                    jobb = center - 1;
+                }
+                else
+                {
+                    bal = center + 1;
+                }
+                center = (bal + jobb) / 2;
+            }
+            if (bal <= jobb)
+            {
+                return center;
+            }
+            return -1; //nincs ilyen --> -1
+        }
+    </p>
 
+    <h1>Részhalmaz</h1>
+    <p>
+        public bool Subset(SetOfInts other)
+        {
+            //Részhalmaz vizsgálat --> az órai dián "A része-e a B-nek" látható, ahol "A" a kisebb
+            // A : other
+            // B : this
+            int[] A = other.Tomb;
+            int[] B = this.Tomb;
+            int i = 0; // i = 0 .. other.Tomb.Length - 1 | A futóváltozója
+            int j = 0; // j = 0 .. this.Tomb.Length - 1 | B futóváltozója
+            int m = A.Length - 1; // i-hez tartozó felső határ
+            int n = B.Length - 1; //j-hez tartozó felső határ
+            while (i <= m && j <= n && A[i].CompareTo(B[j]) >= 0) //a[i] >= b[j]
+            {
+                if (A[i] == B[j])
+                {
+                    i++;
+                }
+                j++;
+            }
+            return i > m;
+        }
+    </p>
+    <p>
+        public bool Contains(object participant)
+        {
+            if(participant is Participant)
+            {
+                IComparable[] x = Tomb;
+                int bal = 0;
+                int jobb = x.Length - 1;
+                int center = (bal + jobb) / 2;
+                while (bal <= jobb && x[center].CompareTo(participant) != 0)
+                {
+                    if (x[center].CompareTo(participant) > 0) // ha x[center] > value
+                    {
+                        jobb = center - 1;
+                    }
+                    else
+                    {
+                        bal = center + 1;
+                    }
+                    center = (bal + jobb) / 2;
+                }
+                if (bal <= jobb)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    </p>
+    <p>
+        public bool IsSubset(ParticipantList other)
+        {
+            //Részhalmaz vizsgálat --> az órai dián "A része-e a B-nek" látható, ahol "A" a kisebb
+            // A : other
+            // B : this
+            IComparable[] A = other.Tomb;
+            IComparable[] B = this.Tomb;
+            int i = 0; // i = 0 .. other.Tomb.Length - 1 | A futóváltozója
+            int j = 0; // j = 0 .. this.Tomb.Length - 1 | B futóváltozója
+            int m = A.Length - 1; // i-hez tartozó felső határ
+            int n = B.Length - 1; //j-hez tartozó felső határ
+            while (i <= m && j <= n && A[i].CompareTo(B[j]) >= 0) //a[i] >= b[j]
+            {
+                if (A[i].CompareTo(B[j]) == 0)
+                {
+                    i++;
+                }
+                j++;
+            }
+            return i > m;
+        }
+
+        static bool IsSubset(ParticipantList list1, ParticipantList list2)
+        {
+            //Részhalmaz vizsgálat --> az órai dián "A része-e a B-nek" látható, ahol "A" a kisebb
+            // A : other
+            // B : this
+            IComparable[] A = list1.Tomb;
+            IComparable[] B = list2.Tomb;
+            int i = 0; // i = 0 .. other.Tomb.Length - 1 | A futóváltozója
+            int j = 0; // j = 0 .. this.Tomb.Length - 1 | B futóváltozója
+            int m = A.Length - 1; // i-hez tartozó felső határ
+            int n = B.Length - 1; //j-hez tartozó felső határ
+            while (i <= m && j <= n && A[i].CompareTo(B[j]) >= 0) //a[i] >= b[j]
+            {
+                if (A[i].CompareTo(B[j]) == 0)
+                {
+                    i++;
+                }
+                j++;
+            }
+            return i > m;
+        }
+    </p>
 
     <h1>Halmaz unioja</h1>
     <p>
-        Bemenet: a1 − T halmaz, m1 − egész (halmaz mérete), a2 − T halmaz, m2 − egész (halmaz mérete)
-Kimenet: b − T halmaz, db − egész
-függvény HalmazUnió(a1, m1, a2, m2)
-b ← Létrehoz(T)[m1 + m2]
-i ← 1
-j ← 1
-db ← 0
-m1 ← m1 + 1
-a1[m1] ← +∞
-m2 ← m2 + 1
-a2[m2] ← +∞
-ciklus amíg (i < m1) ∨ (j < m2)
-db ← db + 1
-ha a1[i] < a2[j] akkor
-b[db] ← a1[i]
-i ← i + 1
-különben
-ha a1[i] > a2[j] akkor
-b[db] ← a2[j]
-j ← j + 1
-különben
-b[db] ← a1[i]
-i ← i + 1
-j ← j + 1
-elágazás vége
-elágazás vége
-ciklus vége
-vissza (b, db)
-függvény vége
+        public SetOfInts Union(SetOfInts other)
+        {
+
+            // a sorrend (azaz, hogy melyik az A1 és melyik az A2) most lényegtelen
+            int[] Eredeti1 = this.Tomb;
+            int[] Eredeti2 = other.Tomb;
+            // ide gyűjtjük ki a közös elemeket
+            int[] B = new int[Eredeti1.Length + Eredeti2.Length];
+            int db = -1;
+
+            //belőjük a futóindexeket és azok felső határát
+            int i = 0; // i= 0 .. Tomb.Length - 1
+            int j = 0; // j= 0 .. other.Tomb.Length - 1
+
+            //Az órai dián a pszeudokód azt akarja, hogy rakjunk be egy újabb elemet (+végtelen-t)
+            int[] A1 = new int[Eredeti1.Length + 1];
+            for (int k = 0; k < Eredeti1.Length; k++)
+            {
+                A1[k] = Eredeti1[k];
+            }
+            A1[Eredeti1.Length] = int.MaxValue;
+
+            //másikra úgyszintén
+            int[] A2 = new int[Eredeti2.Length + 1];
+            for (int k = 0; k < Eredeti2.Length; k++)
+            {
+                A2[k] = Eredeti2[k];
+            }
+            A2[Eredeti2.Length] = int.MaxValue;
+
+            int m = A1.Length; // i-hez tartozó felső határ
+            int n = A2.Length; // j-hez tartozó felső határ
+
+            while (i < m || j < n)
+            {
+                db++;
+                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
+                {
+                    B[db] = A1[i];
+                    i++;
+                }
+                else if (A1[i].CompareTo(A2[j]) > 0) // A1[i] > A2[j]
+                {
+                    B[db] = A2[j];
+                    j++;
+                }
+                else
+                {
+                    B[db] = A1[i];
+                    i++;
+                    j++;
+                }
+            }
+
+            //"levágjuk" a felesleget
+            int[] results = new int[db];
+            for (int k = 0; k < results.Length; k++)
+            {
+                results[k] = B[k];
+            }
+            return new SetOfInts(results);
+        }
+    }
     </p>
 
     <h1>Halmaz metszete</h1>
     <p>
-        Bemenet: a1 − T halmaz, m1 − egész (halmaz mérete), a2 − T halmaz, m2 − egész (halmaz mérete)
-Kimenet: b − T halmaz, db − egész
-függvény HalmazMetszet(a1, m1, a2, m2)
-b ← Létrehoz(T)[min(m1, m2)]
-i ← 1
-j ← 1
-db ← 0
-ciklus amíg (i ≤ m1) ∧ (j ≤ m2)
-ha a1[i] < a2[j] akkor
-i ← i + 1
-különben ha a1[i] > a2[j] akkor
-j ← j + 1
-különben
-db ← db + 1
-b[db] ← a1[i]
-i ← i + 1
-j ← j + 1
-elágazás vége
-ciklus vége
-vissza (b, db)
-függvény vége
+        public SetOfInts Intersection(SetOfInts other)
+        {
+            // a sorrend (azaz, hogy melyik az A1 és melyik az A2) most lényegtelen
+            int[] A1 = this.Tomb;
+            int[] A2 = other.Tomb;
+            // ide gyűjtjük ki a közös elemeket
+            int[] B = new int[Math.Min(A1.Length, A2.Length)];
+            int db = -1;
+
+            //belőjük a futóindexeket és azok felső határát
+            int i = 0; // i= 0 .. Tomb.Length - 1
+            int j = 0; // j= 0 .. other.Tomb.Length - 1
+            int m = A1.Length - 1; // i-hez tartozó felső határ
+            int n = A2.Length - 1; //j-hez tartozó felső határ
+
+            while (i <= m && j <= n)
+            {
+                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
+                {
+                    i++;
+                }
+                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
+                {
+                    j++;
+                }
+                else
+                {
+                    db++;
+                    B[db] = A1[i];
+                    i++;
+                    j++;
+                }
+            }
+
+            //"levágjuk" a felesleget
+            int[] results = new int[db];
+            for (int k = 0; k < results.Length; k++)
+            {
+                results[k] = B[k];
+            }
+            return new SetOfInts(results);
+        }
+    </p>
+    <p>
+        public ParticipantList Intersection(ParticipantList other)
+        {
+            // a sorrend (azaz, hogy melyik az A1 és melyik az A2) most lényegtelen
+            IComparable[] A1 = this.Tomb;
+            IComparable[] A2 = other.Tomb;
+            // ide gyűjtjük ki a közös elemeket
+            IComparable[] B = new IComparable[Math.Min(A1.Length, A2.Length)];
+            int db = -1;
+
+            //belőjük a futóindexeket és azok felső határát
+            int i = 0; // i= 0 .. Tomb.Length - 1
+            int j = 0; // j= 0 .. other.Tomb.Length - 1
+            int m = A1.Length - 1; // i-hez tartozó felső határ
+            int n = A2.Length - 1; //j-hez tartozó felső határ
+
+            while (i <= m && j <= n)
+            {
+                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
+                {
+                    i++;
+                }
+                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
+                {
+                    j++;
+                }
+                else
+                {
+                    db++;
+                    B[db] = A1[i];
+                    i++;
+                    j++;
+                }
+            }
+
+            //"levágjuk" a felesleget
+            IComparable[] results = new IComparable[db];
+            for (int k = 0; k < results.Length; k++)
+            {
+                results[k] = B[k];
+            }
+            return new ParticipantList(results);
+        }
+
+        static ParticipantList Intersection(ParticipantList list1, ParticipantList list2)
+        {
+            // a sorrend (azaz, hogy melyik az A1 és melyik az A2) most lényegtelen
+            IComparable[] A1 = list1.Tomb;
+            IComparable[] A2 = list2.Tomb;
+            // ide gyűjtjük ki a közös elemeket
+            IComparable[] B = new IComparable[Math.Min(A1.Length, A2.Length)];
+            int db = -1;
+
+            //belőjük a futóindexeket és azok felső határát
+            int i = 0; // i= 0 .. Tomb.Length - 1
+            int j = 0; // j= 0 .. other.Tomb.Length - 1
+            int m = A1.Length - 1; // i-hez tartozó felső határ
+            int n = A2.Length - 1; //j-hez tartozó felső határ
+
+            while (i <= m && j <= n)
+            {
+                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
+                {
+                    i++;
+                }
+                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
+                {
+                    j++;
+                }
+                else
+                {
+                    db++;
+                    B[db] = A1[i];
+                    i++;
+                    j++;
+                }
+            }
+
+            //"levágjuk" a felesleget
+            IComparable[] results = new IComparable[db];
+            for (int k = 0; k < results.Length; k++)
+            {
+                results[k] = B[k];
+            }
+            return new ParticipantList(results);
+        }
     </p>
 
     <h1>Halmaz különbsége</h1>
     <p>
-        Bemenet: a1 − T halmaz, m1 − egész (halmaz mérete), a2 − T halmaz, m2 − egész (halmaz mérete)
-Kimenet: b − T halmaz, db − egész
-függvény HalmazKülönbség(a1, m1, a2, m2)
-b ← Létrehoz(T)[m1]
-i ← 1
-j ← 1
-db ← 0
-ciklus amíg (i ≤ m1) ∧ (j ≤ m2)
-ha a1[i] < a2[j] akkor
-db ← db + 1
-b[db] ← a1[i]
-i ← i + 1
-különben ha a1[i] > a2[j] akkor
-j ← j + 1
-különben
-i ← i + 1
-j ← j + 1
-elágazás vége
-ciklus vége
-ciklus amíg i ≤ m1
-db ← db + 1
-b[db] ← a1[i]
-i ← i + 1
-ciklus vége
-vissza (b, db)
-függvény vége
+        public ParticipantList Difference(ParticipantList other)
+        {
+            IComparable[] A1 = this.Tomb; //ebből vonjuk ki
+            IComparable[] A2 = other.Tomb; //ezt vonjuk ki
+            // ide gyűjtjük ki a közös elemeket
+            IComparable[] B = new IComparable[A1.Length];
+            int db = -1;
+            //belőjük a futóindexeket és azok felső határát
+            int i = 0; // i= 0 .. Tomb.Length - 1
+            int j = 0; // j= 0 .. other.Tomb.Length - 1
+            int m = A1.Length - 1; // i-hez tartozó felső határ
+            int n = A2.Length - 1; // j-hez tartozó felső határ
+            while (i <= m && j <= n)
+            {
+                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
+                {
+                    db++;
+                    B[db] = A1[i];
+                    i++;
+                }
+                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
+                {
+                    j++;
+                }
+                else
+                {
+                    i++;
+                    j++;
+                }
+            }
+
+            while (i <= m)
+            {
+                db++;
+                B[db] = A1[i];
+                i++;
+            }
+
+            //"levágjuk" a felesleget
+            IComparable[] results = new IComparable[db];
+            for (int k = 0; k < results.Length; k++)
+            {
+                results[k] = B[k];
+            }
+            return new ParticipantList(results);
+        }
+
+        static ParticipantList Difference(ParticipantList list1, ParticipantList list2)
+        {
+            IComparable[] A1 = list1.Tomb; //ebből vonjuk ki
+            IComparable[] A2 = list2.Tomb; //ezt vonjuk ki
+            // ide gyűjtjük ki a közös elemeket
+            IComparable[] B = new IComparable[A1.Length];
+            int db = -1;
+            //belőjük a futóindexeket és azok felső határát
+            int i = 0; // i= 0 .. Tomb.Length - 1
+            int j = 0; // j= 0 .. other.Tomb.Length - 1
+            int m = A1.Length - 1; // i-hez tartozó felső határ
+            int n = A2.Length - 1; // j-hez tartozó felső határ
+            while (i <= m && j <= n)
+            {
+                if (A1[i].CompareTo(A2[j]) < 0) //A1[i] < A2[j]
+                {
+                    db++;
+                    B[db] = A1[i];
+                    i++;
+                }
+                else if (A1[i].CompareTo(A2[j]) > 0) //A1[i] > A2[j]
+                {
+                    j++;
+                }
+                else
+                {
+                    i++;
+                    j++;
+                }
+            }
+
+            while (i <= m)
+            {
+                db++;
+                B[db] = A1[i];
+                i++;
+            }
+
+            //"levágjuk" a felesleget
+            IComparable[] results = new IComparable[db];
+            for (int k = 0; k < results.Length; k++)
+            {
+                results[k] = B[k];
+            }
+            return new ParticipantList(results);
+        }
+    </p>
+
+    <h1>Ordered and Unique</h1>
+    <p>
+        bool isItOrderedAndUnique(int[] vizsgaltTomb)
+        {
+            //nem részletezte a feladat, hogy növekvő vagy csökkenő sorrend kell,
+            //ezért legyen szimplán növekvő
+            for (int i = 1; i < vizsgaltTomb.Length; i++)
+            {
+                //ha a következő elem kisebb, akkor nem rendezett
+                //ha a következő elem vele egyenlő, akkor nem minden elem egyedi
+                if (vizsgaltTomb[i - 1] >= vizsgaltTomb[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     </p>
 
     <h1>Hibakezeles</h1>
@@ -235,5 +588,9 @@ függvény vége
             }
         }
     </p>
+
+    <h1>Unio prog</h1>
+
+
 </body>
 </html>
