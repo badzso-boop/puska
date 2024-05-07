@@ -461,5 +461,96 @@ SELECT * FROM departments2;
 ROLLBACK TO sp;
 SELECT * FROM departments2;
     </p>
+
+    <h1>MINTA ZH MEGOLDASA</h1>
+
+    <p>
+        SET serveroutput ON
+SET verify OFF
+
+1
+CREATE OR REPLACE PROCEDURE kodrolkredit(NEPTUNKOD IN CHAR) IS
+kreditszam NUMBER;
+BEGIN
+SELECT SUM(kredit) INTO kreditszam FROM hallgatok
+INNER JOIN leckekonyv USING(neptunid)
+INNER JOIN kurzusok USING(kurzusid)
+WHERE erdemjegy>1 AND neptunid=NEPTUNKOD;
+IF kreditszam>20 THEN
+    dbms_output.put_line('A hallgató sok kreditet teljesített, Neptun-kód: '|| NEPTUNKOD);
+ELSE
+    dbms_output.put_line('A hallgató kevés kreditet teljesített, Neptun-kód: '|| NEPTUNKOD);
+END IF;
+END;
+/
+EXECUTE kodrolkredit('OEM5G1');
+EXECUTE kodrolkredit('OER1K2');
+
+
+2
+CREATE OR REPLACE TRIGGER ujoktato
+BEFORE INSERT ON oktatok
+FOR EACH ROW
+BEGIN
+IF :new.fizetes>=150000 THEN
+  dbms_output.put_line('Új oktató felvéve, '||:new.vnev );
+ELSE
+  :new.fizetes:=150000;
+  dbms_output.put_line('Új oktató felvéve (javított fizetés), '||:new.vnev );
+END IF;
+END;
+/
+SAVEPOINT mentes;
+INSERT INTO oktatok VALUES (999, 'ASD','JOGS',140000);
+INSERT INTO oktatok VALUES (998, 'DSA','Jert',160000);
+ROLLBACK TO mentes;
+
+
+
+3/a
+DECLARE
+  CURSOR c1 IS
+    SELECT DISTINCT h.knev, h.vnev FROM hallgatok h INNER JOIN leckekonyv USING(neptunid) INNER JOIN oktatok o USING(oktatoid) WHERE o.fizetes > (SELECT AVG(fizetes) FROM oktatok);
+BEGIN
+	FOR r IN c1
+	LOOP
+		DBMS_OUTPUT.PUT_LINE(r.vnev || ' ' || r.knev);
+	END LOOP;
+END;
+/
+
+Írjuk ki a jeles értékeléssel rendelkező oktatók vezetéknevét, átlagos értékelését és a hozzájuk történt kurzusfelvételek számát, 
+de csak az első öt oktatóét, a névsor szerint!  
+3/b
+SELECT vnev, AVG(ertekeles), COUNT(*)
+FROM leckekonyv INNER JOIN oktatok 
+ON leckekonyv.oktatoid = oktatok.oktatoid
+WHERE leckekonyv.oktatoid IN (SELECT oktatoid FROM leckekonyv WHERE ertekeles = 5)
+GROUP BY vnev
+ORDER BY vnev
+FETCH FIRST 5 ROWS ONLY;
+
+Emeljük meg a legkevesebbet kereső oktató fizetését annyira, mint a legtöbbet kereső oktató fizetésének a fele!
+3/c
+UPDATE oktatok SET fizetes = (SELECT max(fizetes) FROM oktatok)/2 WHERE fizetes = (SELECT min(fizetes) FROM oktatok);
+
+Kérjük le azokat a teremazonosítókat és a terem kapacitását, ahol nem tartanak egy órát sem. A megoldásban használjon halmazműveletet!
+3/d
+SELECT termek.teremid,kapacitas
+FROM termek INNER JOIN
+(SELECT teremid FROM termek MINUS SELECT teremid FROM kurzusok) allekerd
+ON termek.teremid=allekerd.teremid;
+
+Kérdezze le, hogy hány darab kurzusfelvételt tartalmaz a leckekonyv tábla összesen az 5 legrosszabbul kereső tanárhoz!
+3/e
+SELECT COUNT(*) 
+FROM leckekonyv l
+WHERE l.oktatoid IN (
+    SELECT o.oktatoid 
+    FROM oktatok o 
+    ORDER BY o.fizetes ASC 
+    FETCH FIRST 5 ROWS ONLY
+);
+    </p>
 </body>
 </html>
