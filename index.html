@@ -17,540 +17,175 @@
 </style>
 <body>
     <p>
-        Mentési pont
-
-SAVEPONT nev; -> mented az eddigi adatokat
-INSERT INTO ...
-ROLLBACK TO nev; -> visszagörget a megnevezett pontra
-ROLLBACK; -> visszagörgeti az aktuális parancsot
-COMMIT; -> véglegesít
-
-Felhasználói input
-ACCEPT x PROMPT 'Kérem a számot:'
-DECLARE
-    szam NUMBER;
-BEGIN
-    szam := &x;
-    dbms_output.put_line(szam || ' négyzete: ' ||szam*szam);
-END;
-/
-
-
-KURZOROK
-Implicit -> amikor egyertelmu hogy mi szamit egy sornak (most pl a for végett tudja)
-DECLARE
-    egysor employees%ROWTYPE;
-BEGIN
-FOR egysor IN (SELECT * FROM employees)
-LOOP
-    dbms_output.put('Név: ' || egysor.last_name);
-    dbms_output.put_line(',  Fizetés: ' || egysor.salary);
-END LOOP;
-END;
-/
-
-Explicit kurzor -> deklaráljuk a „kurzor” nevű kurzort, mint egy select utasítás által előállított eredménytáblát (eredményhalmazt). Ezt követően a kurzorral végig tudunk lépni az eredményhalmazon.
-DECLARE
-    CURSOR kurzor IS select * from employees;
-    rekord employees%ROWTYPE;
-BEGIN
-    FOR rekord IN kurzor
-    LOOP
-        IF rekord.salary BETWEEN &also AND &felso
-        THEN
-            dbms_output.put_line(rekord.last_name||',  ' 
-            || rekord.salary);         
-        END IF;
-    END LOOP;
-END;
-/
-
-- %FOUND – Sikeres volt az előző FETCH művelet?
-- %NOTFOUND – Sikertelen volt az előző FETCH művelet?
-- %ROWCOUNT – Feldolgozott sorok darabszáma
-- %ISOPEN – Volt OPEN művelet
-
-
-Kivételkezelés
-    - NO_DATA_FOUND
-        - SELECT INTO nem adott vissza sort 
-        - Vigyázat! Csoportfüggvények nem dobnak ilyet!
-    - TOO_MANY_ROWS 
-        - SELECT INTO egynél több sort adott vissza
-    - INVALID_NUMBER
-        - számmá konvertálás hibája
-    - ZERO_DIVIDE
-        - nullával osztás
-    - OTHERS
-        - "Minden más"
-
-    - Saját kivétel
-        ACCEPT szam PROMPT 'Szám:'
-        DECLARE 
-            nulla EXCEPTION;
-        BEGIN
-            IF &szam=0 THEN
-                RAISE nulla;
-            END IF;
-            EXCEPTION WHEN nulla THEN 
-                    dbms_output.put_line('Ez nulla!');
-        END;
-        /
-
-
-PROCEDURE
-
-CREATE OR REPLACE PROCEDURE nev(vezName varchar2 ,parameter [varchar2 / number / char / date / boolean / float])
-IS
-    %% valtozok definialasa %%
-    osszeg number := 0;
-    cursor kurzor is SELECT * FROM employees;
-    rekord kurzor%ROWTYPE;
-    cursor kurzor2 is select * from employees2 where last_name = vezNev for update of salary;
-    rekord2 kurzor2%ROWTYPE;
-BEGIN
-    for rekord in kurzor
-    loop
-        osszeg := osszeg + rekord.salary;
-    end loop;
-    if osszeg is not null then
-        DBMS_OUTPUT.PUT_LINE('Összes fizetés: ' || osszeg);
-    end if;
-END;
-/
-
-
-CREATE OR REPLACE PROCEDURE kredit_osszeg(neptun_kod CHAR)
-IS
-    osszes_kredit NUMBER := 0;
-BEGIN
-    SELECT SUM(kredit)
-    INTO osszes_kredit
-    FROM leckekonyv
-    WHERE neptun = neptun_kod AND erdemjegy > 1;
-
-    IF osszes_kredit > 20 THEN
-        DBMS_OUTPUT.PUT_LINE('A hallgató sok kreditet teljesített: ' || neptun_kod);
-    ELSE
-        DBMS_OUTPUT.PUT_LINE('A hallgató kevés kreditet teljesített: ' || neptun_kod);
-    END IF;
-END;
-/
-
-BEGIN
-    kredit_osszeg('OEM5G1');
-    kredit_osszeg('OER1K2');
-END;
-/
-
-
-TRIGGEREK
-:new -> uj ertek
-:old -> regi ertek
-
-CREATE OR REPLACE TRIGGER nev
-[before / after] [delete or insert or update on / delete on / insert on / update on] tablanev
-[FOR EACH ROW / FOR EACH ROW WHEN(new.salary <> old.salary)] -> megvaltozott a salary ertek
-BEGIN
-    if inserting then
-        dbms_output.put_line("inserting");
-    elsif deleting then
-        dbms_output.put_line("inserting");
-    elsif updating then
-        dbms_output.put_line("inserting");
-    end if;
-END;
-
-DATUM KEZELES TRIGERBEN
-Ha december van irja ki hogy "kellemes ünnepeket!"
-    if extract(month from sysdate) = 12 then
-        dbms_output.put_line("kellemes ünnepeket!");
-    end if;
-
-Ne lehessen csokkenteni a fizetest
-CREATE OR REPLACE TRIGGER SalaryUpdate
-before UPDATE ON employees2 -> update elott fusson le
-FOR EACH ROW
-BEGIN
- IF :NEW.salary < :OLD.salary THEN
-  :NEW.salary := :OLD.salary; -> uj ertekbe elmentjuk a regi erteket
-  DBMS_OUTPUT.PUT_LINE('Nem lehet csokkenteni a fizetest!');
- END IF;
-END;
-
--- Készíts egy triggert, amely nem enged egyetlen alkalmazottnak sem department –et váltani anélkül, hogy az új főnöke annak a departmentnek a managere lenne a továbbiakban!
-CREATE OR REPLACE TRIGGER depchange_with_manchange
-BEFORE UPDATE ON employees2
-FOR EACH ROW
-DECLARE
- depmanid NUMBER;
-BEGIN
- SELECT manager_id into depmanid from departments where department_id = :NEW.department_id;
-  IF :NEW.manager_id != depmanid THEN
-    :NEW.manager_id:= depmanid;
-    DBMS_OUTPUT.PUT_LINE('Nem valthat departmentet anelkul, hogy az ahhoz tartozo manager lenne az uj fonoke!');
-  END IF;
-END;
-
--- Készíts egy triggert, ami ellenőrzi, hogy a countries táblába csak olyan country_name-et lehessen beszúrni (vagy módosítani), ami az angol ABC kis- és nagybetűit tartalmazza!​
-CREATE OR REPLACE TRIGGER check_country_name 
-BEFORE INSERT OR UPDATE ON countries2 
-FOR EACH ROW 
-DECLARE 
-  invalid_characters EXCEPTION;
-BEGIN
-  IF NOT REGEXP_LIKE(:NEW.country_name, '^[A-Za-z ]+$') THEN
-    RAISE invalid_characters;
-  END IF;
-EXCEPTION
-  WHEN invalid_characters THEN
-    raise_application_error(-20001, 'Az ország neve csak angol ABC karaktereket tartalmazhat.');
-END;
-
-
-    </p>
-
-
-
-
-    <h2>NAGYON SOK CUCC</h2>
-    <p>
-        -- EZ mindig kell
-SET serveroutput ON
-SET verify OFF
-
--- Felhasználói input
-    ACCEPT x PROMPT 'Kérem a számot:'
-    DECLARE
-        szam NUMBER;
-    BEGIN
-        szam := &x;
-        dbms_output.put_line(szam || ' négyzete: ' ||szam*szam);
-    END;
-    /
-
-
--- IF feltételek
-    ACCEPT x PROMPT 'Kérem a számot:'
-    DECLARE
-        szam NUMBER;
-    BEGIN
-        szam := &x;
-        IF szam>0 THEN
-            dbms_output.put_line('Pozitív.');
-        ELSIF szam<0 THEN
-            dbms_output.put_line('Negatív.');
-        ELSE
-            dbms_output.put_line('Nulla.');
-        END IF;
-    END;
-    /
-
-
--- Oszthatóság
-    ACCEPT x PROMPT 'Kérem a számot:'
-    declare
-        szam integer;
-    begin
-        szam := &x;
-        if mod(szam, 5) = 0 then
-            dbms_output.put_line('Osztható öttel. ');
-        else
-            dbms_output.put_line('Nem osztható öttel. ');
-        end if;
-    end;
-    /
-
-
--- WHILE ciklus
-    DECLARE
-        tol NUMBER;
-        ig  NUMBER;
-    BEGIN
-        tol:=1;
-        ig:=10;
-        LOOP
-            dbms_output.put_line(tol);
-            EXIT WHEN tol=ig;
-            tol:=tol+1;
-        END LOOP;
-    END;
-    /
-
-
--- FOR ciklus
-    ACCEPT mettol PROMPT 'Mettől:'
-    ACCEPT meddig PROMPT 'Meddig:'
-    DECLARE
-        tol NUMBER;
-        ig  NUMBER;
-    BEGIN
-        tol:=&mettol;
-        ig:=&meddig;
-        FOR i in tol..ig
-        LOOP
-            -- MOD(x,y) : x mennyi maradékot ad y-nal osztva
-            IF MOD(i,2)=1 THEN 
-                dbms_output.put(i || ', ');
-            END IF;
-        END LOOP;
-        dbms_output.put_line('');
-    END; 
-    /
-
-
--- KURZOROK
-    -- %FOUND – Sikeres volt az előző FETCH művelet?
-    -- %NOTFOUND – Sikertelen volt az előző FETCH művelet?
-    -- %ROWCOUNT – Feldolgozott sorok darabszáma
-    -- %ISOPEN – Volt OPEN művelet?
-
-    -- Implicit -> amikor egyertelmu hogy mi szamit egy sornak (most pl a for végett tudja)
-    DECLARE
-        egysor employees%ROWTYPE;
-    BEGIN
-    FOR egysor IN (SELECT * FROM employees)
-    LOOP
-        dbms_output.put('Név: ' || egysor.last_name);
-        dbms_output.put_line(',  Fizetés: ' || egysor.salary);
-    END LOOP;
-    END;
-    /
-
-    -- Explicit
-    -- Explicit kurzor: deklaráljuk a „kurzor” nevű kurzort, mint egy select utasítás által előállított eredménytáblát (eredményhalmazt). 
-    -- Ezt követően a kurzorral végig tudunk lépni az eredményhalmazon.
-
-    ACCEPT also PROMPT 'Kérem az alsó határt:'
-    ACCEPT felso PROMPT 'Kérem az felső határt:'
-    DECLARE
-    CURSOR kurzor IS select * from employees;
-    rekord employees%ROWTYPE;
-    BEGIN
-    FOR rekord IN kurzor
-    LOOP
-        IF rekord.salary BETWEEN &also AND &felso
-        THEN
-            dbms_output.put_line(rekord.last_name||',  ' 
-            || rekord.salary);         
-        END IF;
-    END LOOP;
-    END;
-    /
-
--- UPDATE
-    -- NOWAIT: ne várakozzon a zárolt sorokra
-    Declare
-    cursor kurzor is select*from employees2 for update of salary;
-    rekord kurzor%ROWTYPE; 
-    fizetes number;
-    BEGIN
-        OPEN kurzor;
-        LOOP
-            FETCH kurzor INTO rekord;
-            EXIT WHEN kurzor%NOTFOUND;
-            fizetes := rekord.salary * 1.2;
-            UPDATE employees2 set salary = fizetes WHERE CURRENT OF kurzor; 
-        END LOOP;
-        CLOSE kurzor;
-    END;
-    /
-
--- Kivételkezelés
-    -- NO_DATA_FOUND
-        -- SELECT INTO nem adott vissza sort 
-        -- Vigyázat! Csoportfüggvények nem dobnak ilyet!
-    -- TOO_MANY_ROWS 
-        -- SELECT INTO egynél több sort adott vissza
-    -- INVALID_NUMBER
-        -- számmá konvertálás hibája
-    -- ZERO_DIVIDE
-        -- nullával osztás
-    -- OTHERS
-        -- "Minden más"
-
-    -- Saját kivétel
-    ACCEPT szam PROMPT 'Szám:'
-    DECLARE 
-        nulla EXCEPTION;
-    BEGIN
-        IF &szam=0 THEN
-            RAISE nulla;
-        END IF;
-        EXCEPTION WHEN nulla THEN 
-                dbms_output.put_line('Ez nulla!');
-    END;
-    /
-
--- saját PROCEDURE
-    -- Készíts eljárást, amely 2 szám paraméterrel rendelkezik. Az eljárás írja ki a két szám összegét. Ezt követően töröld az eljárást.
-    CREATE OR REPLACE PROCEDURE osszeadas(a NUMBER, b NUMBER) IS
-        osszeg NUMBER;
-    BEGIN
-        osszeg := a + b;
-        DBMS_OUTPUT.PUT_LINE('Sum: ' || osszeg);
-    END;
-    /
-
-    BEGIN
-        osszeadas(2, 3);
-    END;
-    /
-
-    DROP PROCEDURE osszeadas;
-
--- FUNCTION
-
-    -- Készíts olyan függvényt, amelynek a paraméterei két szám, a visszatérési értéke pedig a két szám minimuma.
-    create or replace function mini(a number, b number)
-    return number
-    is
-    begin
-        if a < b then
-            return a;
-        else
-            return b;
-        end if;
-    end;
-
-    begin
-        dbms_output.put_line(mini(6,2));
-    end;
-    /
-
--- TRIGGEREK
-    -- :NEW az új, megváltozott érték,
-    -- :OLD a régi, megváltoztatandó érték
-    create table departments2 as select * from departments;
-
-    create or replace trigger Jelzo
-    after insert on departments2
-    begin
-        dbms_output.put_line('Új részleg beszúrva!');
-    end;
-
-    insert into departments2 (department_id, department_name)
-    values (22, 'asd');
-
--- TCL utasítások
-    -- SAVEPOINT ittmentettünk;
-        -- mentési pont létrehozása
-
-    -- ROLLBACK TO ittmentettünk;
-        -- visszagörgetés a megadott mentési pontig
-
-    -- ROLLBACK;
-        -- visszagörgeti az aktuális tranzakciót
-
-    -- COMMIT;
-        -- véglegesítés
-
-
--- FELADAT
-
--- Készítsünk másolatot a departments tábláról departments2 néven.
--- Készítsünk mentési pontot sp néven.
--- Szúrjunk be egy tetszőleges sort a departments2 táblába.
--- Listázzuk a táblát.
--- Álljunk vissza az sp mentési pontra.
--- Listázzuk ismét a táblát.
-Create table departments2 as select * from departments;
-SAVEPOINT sp;
-INSERT INTO departments2 VALUES (300,'Cheesmakers',200,1500);
-SELECT * FROM departments2;
-ROLLBACK TO sp;
-SELECT * FROM departments2;
-    </p>
-
-    <h1>MINTA ZH MEGOLDASA</h1>
-
-    <p>
-        SET serveroutput ON
-SET verify OFF
-
-1
-CREATE OR REPLACE PROCEDURE kodrolkredit(NEPTUNKOD IN CHAR) IS
-kreditszam NUMBER;
-BEGIN
-SELECT SUM(kredit) INTO kreditszam FROM hallgatok
-INNER JOIN leckekonyv USING(neptunid)
-INNER JOIN kurzusok USING(kurzusid)
-WHERE erdemjegy>1 AND neptunid=NEPTUNKOD;
-IF kreditszam>20 THEN
-    dbms_output.put_line('A hallgató sok kreditet teljesített, Neptun-kód: '|| NEPTUNKOD);
-ELSE
-    dbms_output.put_line('A hallgató kevés kreditet teljesített, Neptun-kód: '|| NEPTUNKOD);
-END IF;
-END;
-/
-EXECUTE kodrolkredit('OEM5G1');
-EXECUTE kodrolkredit('OER1K2');
-
-
-2
-CREATE OR REPLACE TRIGGER ujoktato
-BEFORE INSERT ON oktatok
-FOR EACH ROW
-BEGIN
-IF :new.fizetes>=150000 THEN
-  dbms_output.put_line('Új oktató felvéve, '||:new.vnev );
-ELSE
-  :new.fizetes:=150000;
-  dbms_output.put_line('Új oktató felvéve (javított fizetés), '||:new.vnev );
-END IF;
-END;
-/
-SAVEPOINT mentes;
-INSERT INTO oktatok VALUES (999, 'ASD','JOGS',140000);
-INSERT INTO oktatok VALUES (998, 'DSA','Jert',160000);
-ROLLBACK TO mentes;
-
-
-
-3/a
-DECLARE
-  CURSOR c1 IS
-    SELECT DISTINCT h.knev, h.vnev FROM hallgatok h INNER JOIN leckekonyv USING(neptunid) INNER JOIN oktatok o USING(oktatoid) WHERE o.fizetes > (SELECT AVG(fizetes) FROM oktatok);
-BEGIN
-	FOR r IN c1
-	LOOP
-		DBMS_OUTPUT.PUT_LINE(r.vnev || ' ' || r.knev);
-	END LOOP;
-END;
-/
-
-Írjuk ki a jeles értékeléssel rendelkező oktatók vezetéknevét, átlagos értékelését és a hozzájuk történt kurzusfelvételek számát, 
-de csak az első öt oktatóét, a névsor szerint!  
-3/b
-SELECT vnev, AVG(ertekeles), COUNT(*)
-FROM leckekonyv INNER JOIN oktatok 
-ON leckekonyv.oktatoid = oktatok.oktatoid
-WHERE leckekonyv.oktatoid IN (SELECT oktatoid FROM leckekonyv WHERE ertekeles = 5)
-GROUP BY vnev
-ORDER BY vnev
-FETCH FIRST 5 ROWS ONLY;
-
-Emeljük meg a legkevesebbet kereső oktató fizetését annyira, mint a legtöbbet kereső oktató fizetésének a fele!
-3/c
-UPDATE oktatok SET fizetes = (SELECT max(fizetes) FROM oktatok)/2 WHERE fizetes = (SELECT min(fizetes) FROM oktatok);
-
-Kérjük le azokat a teremazonosítókat és a terem kapacitását, ahol nem tartanak egy órát sem. A megoldásban használjon halmazműveletet!
-3/d
-SELECT termek.teremid,kapacitas
-FROM termek INNER JOIN
-(SELECT teremid FROM termek MINUS SELECT teremid FROM kurzusok) allekerd
-ON termek.teremid=allekerd.teremid;
-
-Kérdezze le, hogy hány darab kurzusfelvételt tartalmaz a leckekonyv tábla összesen az 5 legrosszabbul kereső tanárhoz!
-3/e
-SELECT COUNT(*) 
-FROM leckekonyv l
-WHERE l.oktatoid IN (
-    SELECT o.oktatoid 
-    FROM oktatok o 
-    ORDER BY o.fizetes ASC 
-    FETCH FIRST 5 ROWS ONLY
-);
+        n – típusú szennyezés
+azt jelenti, hogy a negatív töltéshordozók (elektronok) számának növelése történik, , eggyel több valenciaelektronnal rendelkező atomot juttatnak a rácsszerkezetbe.
+
+Pauli elv
+egy atomban nem lehet két olyan elektron, amelynek mind a négy adata (kvantumszáma) megegyezik.
+
+Záróirányú előfeszítés (U < 0) esetén a p-rétegre negatív az n-rétegre pozitív feszültséget kapcsolunk. ekkor a
+A p-rétegre kapcsolt negatív potenciál növeli a negatív ionréteg töltését
+Az n-rétegre kapcsolt pozitív potenciál növeli a pozitív ionréteg töltését Ennek következtében növekszik a potenciálfal – ezzel együtt  a kiürített réteg vastagsága.
+
+p-típusú szennyezés
+esetén eggyel kevesebb valenciaelektronnal rendelkező atomot juttatnak a rácsszerkezetbe ez tehát egy akceptor szennyezés.
+
+MgCl2
+ionos kötés
+
+Drift áram
+külső vagy belső villamos tér hatására keletkezik.
+
+fémes kötés
+nem csak fémekre jellemző.
+
+Az aluláteresztő szűrő
+a kapcsolás határfrekvenciája feletti jeleket csillapítja
+
+Az alábbi kapcsolás eredő ellenállásának a képlete:
+Re = 1/R1 + 1/R2
+
+Hamis
+
+Frenkel-féle hiba.
+egy rácselem elhagyja a helyét, és egy nem egyensúlyi pozícióba kerül, helyén vakancia marad.
+
+Ionizációs energia
+az energiamennyiség, amellyel egy elektront ki tudunk szakítani az atomi kötelékből, a vegyérték- tehát a legkülső sávról
+
+egyenirányító
+mindkettő
+
+Mit látunk a következő ábrán? Au=Gyök(1/1+w^2*R^2*C^2)
+aluláteresztő szűrő feszültségátvitele
+
+Terheletlen feszültségosztó R1 -> R2
+Igaz
+
+A kondenzátor árama f függvényében csökken, fázisa 90°-ot siet.
+Hamis 
+
+Mi az impedancia?
+Váltakozó áramú ellenállás
+
+A tekercs feszültsége w függvényében nő, fázisa 90°-ot siet
+Igaz
+
+Drift áram
+külső vagy belső villamos tér hatására keletkezik.
+
+Ionizációs energia
+az energiamennyiség, amellyel egy elektront ki tudunk szakítani az atomi kötelékből, a vegyérték- tehát a legkülső sávról
+
+egyenirányító
+mindkettő
+
+fémes kötés
+nem csak fémekre jellemző
+
+p-típusú szennyezés
+esetén eggyel kevesebb valenciaelektronnal rendelkező atomot juttatnak a rácsszerkezetbe ez tehát egy akceptor szennyezés
+
+Frenkel-féle hiba.
+egy rácselem elhagyja a helyét, és egy nem egyensúlyi pozícióba kerül, helyén vakancia marad
+
+Erősítő pozitív visszacsatolása
+rezgőkör
+
+Erősítő pozitív visszacsatolása
+rezgőkör
+
+Mi az induktivitás?
+tekercs
+
+Mi látható az alábbi képen?
+A konednzátor fázisa 90-ot siet
+
+MgCl2
+ionos kötés
+
+Pauli elv
+egy atomban nem lehet két olyan elektron, amelynek mind a négy adata (kvantumszáma) megegyezik.
+
+n – típusú szennyezés
+azt jelenti, hogy a negatív töltéshordozók (elektronok) számának növelése történik, , eggyel több valenciaelektronnal rendelkező atomot juttatnak a rácsszerkezetbe.
+
+Mi az impedancia?
+Váltakozó áramú ellenállás
+
+A kondenzátor árama ω függvényében csökken, fázisa 60°-ot siet.
+Hamis
+
+Hogyan viselkedik az egyenáramú áramkörben a tekercs?
+rövidzárként
+
+A tekercs feszültsége T függvényében csökken, fázisa 180°-ot siet
+Hamis 
+
+"Az egyenirányító kapcsolások tipikus példája a hálózati tápegységek, melyeknek alapvető feladata"
+egyenfeszültség; 230V; két utas; egyutas; nyitóirányban; 0,7; párhuzamosan; pufferkondenzátor; anód; katód;
+
+"Az RC szűrőnek több változata is ismert: Aluláteresztő, felüláteresztő, sáváteresztő és"
+sávzáró; viszi; csökken; viszi; csökken; sáváteresztő; X; 10; 10;
+
+Ez egy egyenfeszültségű kapcsolás (kép)
+hamis
+
+A tekercs áramerőssége a bemenet függvényében csökken, fázisa 270-ot siet
+Hamis
+
+Lineáris eszközöknél szinuszos gerjesztés esetén elegendő a szinuszos jel amplitudóját és fázisát megadni
+Igaz
+
+Jelleggörbe
+mindkettő
+
+
+
+A képen látható multiméter kijelzője miért mutat 0Ω-os ellenállást?
+Mert túl nagy méréshatárt választott Somlyai Tanár Úr
+
+Soros kapcsoláson áramosztóval meg lehet állapítani az eredő áramot az ellenállás és a feszültség függvényében.
+Hamis
+
+Készítsen felül-áteresztő (RL) szűrőt!
+Resistor - Tekercs
+
+Készítsen felül-áteresztő (RC) szűrőt!
+(Capacitator) - (Resistor)
+
+Adott egy soros RC kapcsolás: (UC = 23.704) (φc=-71.5803)
+
+Ut = 75 V
+C = 100 µF
+R = 100 Ω
+ω = 300 radsec
+
+Adott egy feszültségosztó kapcsolás ahol (UR1=5.5;UR2=16.5;I1=100;I2=100)
+R1=55   Ω
+R2=165  Ω 
+Ut = 22 V
+
+Számolja ki! (UR1=5,6;UR2=9,6;UR3=32;IR1=5,6;IR2=2,4;IR3=8)
+V1 = 4V
+I1 = 8mA
+R1 = 1K
+R2 = 4K
+R3 = 4K
+
+Számolja ki (UR1=20; UR2=24; UR3=32; IR1=2; IR2=6; IR3=8)
+V1 = 4V
+I1 = 8mA
+R1 = 10K
+R2 = 4K
+R3 = 4K
+
+Számolja ki (UR1=1.5; UR2=2.5; UR3=4; IR1=0.75; IR2=1.25; IR3=2)
+V1 = 1V
+I1 = 2mA
+R1 = 2K
+R2 = 2K
+R3 = 2K
     </p>
 </body>
 </html>
