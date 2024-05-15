@@ -17,185 +17,101 @@
 </style>
 <body>
     <p>
-        n – típusú szennyezés
-azt jelenti, hogy a negatív töltéshordozók (elektronok) számának növelése történik, , eggyel több valenciaelektronnal rendelkező atomot juttatnak a rácsszerkezetbe.
+        1. UNIQUE indexet használunk egy tábla adott oszlopára. Ha erre az oszlopra vonatkozóan egy sort már
+a táblában szereplő oszlopértékekkel szeretnék beszúrni, akkor:
+d) hibát kapok
 
-Pauli elv
-egy atomban nem lehet két olyan elektron, amelynek mind a négy adata (kvantumszáma) megegyezik.
+2. Melyik funkcionális függőség érvényes az alábbi táblában? A tábla kulcsát a Pályázatszám adja.
+Feltételezzük, hogy nem létezik két különböző település ugyanazzal a névvel.
+c) Település -> megye
 
-Záróirányú előfeszítés (U < 0) esetén a p-rétegre negatív az n-rétegre pozitív feszültséget kapcsolunk. ekkor a
-A p-rétegre kapcsolt negatív potenciál növeli a negatív ionréteg töltését
-Az n-rétegre kapcsolt pozitív potenciál növeli a pozitív ionréteg töltését Ennek következtében növekszik a potenciálfal – ezzel együtt  a kiürített réteg vastagsága.
+3. Milyen megszorítástípusba tartozik az alábbi megszorítás?
+PROFIT >= 0
+b) Értékfüggő
 
-p-típusú szennyezés
-esetén eggyel kevesebb valenciaelektronnal rendelkező atomot juttatnak a rácsszerkezetbe ez tehát egy akceptor szennyezés.
+4. A tranzakcióra mely állítások igazak? Válasszon ki egyet vagy többet:
+a) egybetartozó DDL utasítások sorozata
+b) „mindent vagy semmit” elven hajtódik végre
+c) naplózással biztosítjuk az atomiságát
+d) ROLLBACK utasítással lehet visszavonni még nem COMMIT-ált tranzakció hatását
+e) ACID tulajdonságok jellemzik
 
-MgCl2
-ionos kötés
+5. ROLLBACK utasítás segítségével mindig kizárólag a tranzakció elejéig tudjuk a kiadott utasítások
+hatását visszavonni.
+b) Hamis
 
-Drift áram
-külső vagy belső villamos tér hatására keletkezik.
+6. A tranzakció sikeres lezárása mindig egy COMMIT utasítás kiadásával történik meg.
+a) Igaz
 
-fémes kötés
-nem csak fémekre jellemző.
+7. Hogyan történhet az indexelés?
+c) Mindegyik helyes.
 
-Az aluláteresztő szűrő
-a kapcsolás határfrekvenciája feletti jeleket csillapítja
+8. A relációs algebrai műveleteknek létezik SQL-beli kifejezési lehetősége
+a) Igaz
 
-Az alábbi kapcsolás eredő ellenállásának a képlete:
-Re = 1/R1 + 1/R2
+9. Melyik funkcionális függőség érvényes az alábbi, Magyarországon lajstromba vett repülőgépek
+adatait tartalmazó táblában? A gyártó neve a Típus oszlop értékének elejével egyezik meg.
+c) Típus -> gyártó
 
-Hamis
+10. Melyik művelet felel meg a relációs algebrában a RIGHT JOIN-nak?
+b) Jobb külső illesztés
 
-Frenkel-féle hiba.
-egy rácselem elhagyja a helyét, és egy nem egyensúlyi pozícióba kerül, helyén vakancia marad.
+11. A költség alapú optimalizáció rövidítése a következő:
+c) CBO
 
-Ionizációs energia
-az energiamennyiség, amellyel egy elektront ki tudunk szakítani az atomi kötelékből, a vegyérték- tehát a legkülső sávról
+12. Ha egy reláció sérti a 3NF-et, akkor a 3NF elérése érdekében:
+d) mindhárom igaz
 
-egyenirányító
-mindkettő
+13. Cégnevek és adószámok:
+c) Egy a többhöz kapcsolat
 
-Mit látunk a következő ábrán? Au=Gyök(1/1+w^2*R^2*C^2)
-aluláteresztő szűrő feszültségátvitele
+14. Válasszon ki egyet vagy többet. Lekérdezés feldolgozás a következő lépésekből áll:
+a) Lekérdezés elemzése, ellenőrzése
+b) Szükséges index struktúrák létrehozása
+d) Optimális végrehajtási terv készítése
+e) Lekérdezés átírása relációs algebrai kifejezéssé, illetve kifejezésfává
 
-Terheletlen feszültségosztó R1 -> R2
-Igaz
+15. Melyik funkcionális függőség érvényes az alábbi, magyar festmények adatait tároló táblában? A
+tábla kulcsát a festő neve és az alkotás címe adja. Létezhet két különböző festő ugyanazzal a névvel.
+c) A megadott 3 függőség közül egyik sem érvényes
 
-A kondenzátor árama f függvényében csökken, fázisa 90°-ot siet.
-Hamis 
+16. Mi a ROWID?
+c) Pszeudo oszlop, ami a táblában van tárolva
 
-Mi az impedancia?
-Váltakozó áramú ellenállás
+17. A funkcionális függőség az értékfüggő megszorítások közé tartozik, mivel nem oszlopok adatai
+közötti viszonyt határoz meg, hanem egy adott oszlop lehetséges értékeire ad megkötést.
+b) Hamis
 
-A tekercs feszültsége w függvényében nő, fázisa 90°-ot siet
-Igaz
+18. Hogyan lehetne 3NF-re hozni az alábbi relációt? Egy kurzust több oktató is taníthat. Az oktatóhoz
+egyetlen mobilszámot tárolunk el a telefonszám attribútumban. Kurzusok (kurzus_ID, kurzusnév,
+oktató, telefonszám)
+d) Dekompozíció kell: (oktató) -> (telefonszám) mentén
 
-Drift áram
-külső vagy belső villamos tér hatására keletkezik.
+19. Melyik állítás igaz az alábbi egyedhalmazra? Könyvtári_kölcsönzés(kölcsönzésID, könyvID, könyvcím,
+író neve, kivétel dátuma, visszahozás dátuma)
+c) 2NF-ben van a reláció
 
-Ionizációs energia
-az energiamennyiség, amellyel egy elektront ki tudunk szakítani az atomi kötelékből, a vegyérték- tehát a legkülső sávról
+20. Hogyan hozzuk 1NF-re a következő táblát, ha a hozzávalókat egyesével akarjuk listázni?
+a) Függőleges kiterítéssel
 
-egyenirányító
-mindkettő
+21. Melyik állítás igaz? Egy reláció 3NF-ben van, akkor és csak akkor, ha 2NF-ben van, és …
+c) nincs függés a másodlagos attribútumok közt
 
-fémes kötés
-nem csak fémekre jellemző
+22. A relációs lekérdezési fát hatékonyabbá tehetjük különböző szabályok alkalmazásával. Válassza ki a
+helyes állításokat:
+a) a vetítést célszerű minél korábban elvégezni
+b) a közös részkifejezéseket célszerű lehetőleg csak egyszer kiszámolni
 
-p-típusú szennyezés
-esetén eggyel kevesebb valenciaelektronnal rendelkező atomot juttatnak a rácsszerkezetbe ez tehát egy akceptor szennyezés
+23. Hathat-e a főellenség ID-ra az, ha a főellenség másik városba költözik?
+Hősök (név, főellenség ID, főellenség városa)
+b) Hamis
 
-Frenkel-féle hiba.
-egy rácselem elhagyja a helyét, és egy nem egyensúlyi pozícióba kerül, helyén vakancia marad
+24. Egy relációban a kulcs egyszerű, akkor…
+c) ha 1NF fennáll, biztosan teljesül 2NF is
 
-Erősítő pozitív visszacsatolása
-rezgőkör
-
-Erősítő pozitív visszacsatolása
-rezgőkör
-
-Mi az induktivitás?
-tekercs
-
-Mi látható az alábbi képen?
-A konednzátor fázisa 90-ot siet
-
-MgCl2
-ionos kötés
-
-Pauli elv
-egy atomban nem lehet két olyan elektron, amelynek mind a négy adata (kvantumszáma) megegyezik.
-
-n – típusú szennyezés
-azt jelenti, hogy a negatív töltéshordozók (elektronok) számának növelése történik, , eggyel több valenciaelektronnal rendelkező atomot juttatnak a rácsszerkezetbe.
-
-Mi az impedancia?
-Váltakozó áramú ellenállás
-
-A kondenzátor árama ω függvényében csökken, fázisa 60°-ot siet.
-Hamis
-
-Hogyan viselkedik az egyenáramú áramkörben a tekercs?
-rövidzárként
-
-A tekercs feszültsége T függvényében csökken, fázisa 180°-ot siet
-Hamis 
-
-"Az egyenirányító kapcsolások tipikus példája a hálózati tápegységek, melyeknek alapvető feladata"
-egyenfeszültség; 230V; két utas; egyutas; nyitóirányban; 0,7; párhuzamosan; pufferkondenzátor; anód; katód;
-
-"Az RC szűrőnek több változata is ismert: Aluláteresztő, felüláteresztő, sáváteresztő és"
-sávzáró; viszi; csökken; viszi; csökken; sáváteresztő; X; 10; 10;
-
-Ez egy egyenfeszültségű kapcsolás (kép)
-hamis
-
-A tekercs áramerőssége a bemenet függvényében csökken, fázisa 270-ot siet
-Hamis
-
-Lineáris eszközöknél szinuszos gerjesztés esetén elegendő a szinuszos jel amplitudóját és fázisát megadni
-Igaz
-
-Jelleggörbe
-mindkettő
-
-A kondenzátor egyenáramú áramkörben
-szakadásként viselkedik
-
-
-
-A képen látható multiméter kijelzője miért mutat 0Ω-os ellenállást?
-Mert túl nagy méréshatárt választott Somlyai Tanár Úr
-
-Soros kapcsoláson áramosztóval meg lehet állapítani az eredő áramot az ellenállás és a feszültség függvényében.
-Hamis
-
-Készítsen felül-áteresztő (RL) szűrőt!
-Resistor - Tekercs
-
-Készítsen felül-áteresztő (RC) szűrőt!
-(Capacitator) - (Resistor)
-
-Adott egy soros RC kapcsolás: (UC = 23.704) (φc=-71.5803)
-
-Ut = 75 V
-C = 100 µF
-R = 100 Ω
-ω = 300 radsec
-
-Adott egy feszültségosztó kapcsolás ahol (UR1=5.5;UR2=16.5;I1=100;I2=100)
-R1=55   Ω
-R2=165  Ω 
-Ut = 22 V
-
-Számolja ki! (UR1=5,6;UR2=9,6;UR3=32;IR1=5,6;IR2=2,4;IR3=8)
-V1 = 4V
-I1 = 8mA
-R1 = 1K
-R2 = 4K
-R3 = 4K
-
-Számolja ki (UR1=20; UR2=24; UR3=32; IR1=2; IR2=6; IR3=8)
-V1 = 4V
-I1 = 8mA
-R1 = 10K
-R2 = 4K
-R3 = 4K
-
-Számolja ki (UR1=1.5; UR2=2.5; UR3=4; IR1=0.75; IR2=1.25; IR3=2)
-V1 = 1V
-I1 = 2mA
-R1 = 2K
-R2 = 2K
-R3 = 2K
-
-Számolja ki (UR1=0.8; UR2=4.8; UR3=8; IR1=0.8; IR2=1.2; IR3=2)
-V1 = 4V
-I1 = 2mA
-R1 = 1K
-R2 = 4K
-R3 = 4K
+25. Melyik funkcionális függőség érvényes az alábbi, általános iskolások adatait tartalmazó táblában,
+ahol a név és a születési dátum adja a kulcsot?
+c) Évfolyam -> tagozat
     </p>
 </body>
 </html>
